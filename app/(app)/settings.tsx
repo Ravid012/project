@@ -28,7 +28,6 @@ export default function SettingsScreen() {
   const deleteAccount = useAppStore((s) => s.deleteAccount);
   const groups = useAppStore((s) => s.groups);
   const memberships = useAppStore((s) => s.memberships);
-  const currentUserId = useAppStore((s) => s.currentUserId);
   const dailyRemindersOptIn = useAppStore((s) => s.dailyRemindersOptIn);
   const setDailyRemindersOptIn = useAppStore((s) => s.setDailyRemindersOptIn);
   const setMuted = useAppStore((s) => s.setMuted);
