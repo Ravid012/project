@@ -11,6 +11,11 @@ import type {
   User,
 } from './types';
 
+/**
+ * Local Zustand store — default data layer when Supabase env keys are missing.
+ * See src/data for the thin repository adapter (local vs supabase).
+ */
+
 const DEMO_USER_ID = 'user_demo';
 const DEMO_FRIEND_ID = 'user_demo_friend';
 const STORAGE_KEY = 'trippot-v1';
@@ -41,8 +46,14 @@ export interface AppState {
   contributions: Contribution[];
   mockSpends: MockSpend[];
   invites: Invite[];
+  /** User opted into local daily reminders from Settings. */
+  dailyRemindersOptIn: boolean;
 
   setHydrated: (v: boolean) => void;
+  setDailyRemindersOptIn: (v: boolean) => void;
+  setPushToken: (userId: string, token: string | null) => void;
+  setMuted: (groupId: string, muted: boolean) => void;
+  ingestContribution: (contribution: Contribution) => void;
 
   signInWithEmail: (
     email: string,
@@ -112,8 +123,23 @@ export const useAppStore = create<AppState>()(
       contributions: [],
       mockSpends: [],
       invites: [],
+      dailyRemindersOptIn: false,
 
       setHydrated: (v) => set({ hydrated: v }),
+      setDailyRemindersOptIn: (v) => set({ dailyRemindersOptIn: v }),
+
+      setPushToken: (userId, token) => {
+        set((s) => ({
+          users: s.users.map((u) => (u.id === userId ? { ...u, pushToken: token } : u)),
+        }));
+      },
+
+      ingestContribution: (contribution) => {
+        set((s) => {
+          if (s.contributions.some((c) => c.id === contribution.id)) return s;
+          return { contributions: [...s.contributions, contribution] };
+        });
+      },
 
       getCurrentUser: () => {
         const { currentUserId, users } = get();
@@ -296,6 +322,16 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      setMuted: (groupId, muted) => {
+        const uid = get().currentUserId;
+        if (!uid) return;
+        set((s) => ({
+          memberships: s.memberships.map((m) =>
+            m.groupId === groupId && m.userId === uid ? { ...m, muted } : m
+          ),
+        }));
+      },
+
       addDemoMember: (groupId) => {
         const friend = get().users.find((u) => u.id === DEMO_FRIEND_ID);
         if (!friend) return;
@@ -394,6 +430,7 @@ export const useAppStore = create<AppState>()(
         contributions: s.contributions,
         mockSpends: s.mockSpends,
         invites: s.invites,
+        dailyRemindersOptIn: s.dailyRemindersOptIn,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);

@@ -1,6 +1,21 @@
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
+import { getRepository } from '@/src/data';
+import {
+  PERMISSION_COPY,
+  getNotificationPermissionStatus,
+  registerForPushPermissions,
+} from '@/src/notifications';
 import { useAppStore } from '@/src/store';
 import { colors } from '@/src/theme/colors';
 
@@ -11,6 +26,37 @@ export default function SettingsScreen() {
   const user = users.find((u) => u.id === currentUserId) ?? null;
   const signOut = useAppStore((s) => s.signOut);
   const deleteAccount = useAppStore((s) => s.deleteAccount);
+  const groups = useAppStore((s) => s.groups);
+  const memberships = useAppStore((s) => s.memberships);
+  const currentUserId = useAppStore((s) => s.currentUserId);
+  const dailyRemindersOptIn = useAppStore((s) => s.dailyRemindersOptIn);
+  const setDailyRemindersOptIn = useAppStore((s) => s.setDailyRemindersOptIn);
+  const setMuted = useAppStore((s) => s.setMuted);
+  const [permissionMessage, setPermissionMessage] = useState<string>(PERMISSION_COPY.intro);
+
+  const myMemberships = memberships.filter((m) => m.userId === currentUserId);
+  const myGroups = groups.filter((g) => myMemberships.some((m) => m.groupId === g.id));
+
+  useEffect(() => {
+    void getNotificationPermissionStatus().then((r) => setPermissionMessage(r.message));
+  }, [dailyRemindersOptIn]);
+
+  const onToggleReminders = async (value: boolean) => {
+    if (!value) {
+      setDailyRemindersOptIn(false);
+      setPermissionMessage(PERMISSION_COPY.intro);
+      return;
+    }
+    const result = await registerForPushPermissions();
+    setPermissionMessage(result.message);
+    setDailyRemindersOptIn(result.granted);
+    if (result.granted && user && result.token) {
+      await getRepository().savePushToken(user.id, result.token);
+    }
+    if (!result.granted) {
+      Alert.alert('Notifications', result.message);
+    }
+  };
 
   const onDelete = () => {
     Alert.alert(
@@ -31,12 +77,59 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
       <View style={styles.card}>
         <Text style={styles.label}>Signed in as</Text>
         <Text style={styles.name}>{user?.displayName ?? '—'}</Text>
         <Text style={styles.email}>{user?.email ?? ''}</Text>
       </View>
+
+      <Text style={styles.section}>Daily reminders</Text>
+      <View style={styles.card}>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.rowText}>Enable daily reminders</Text>
+            <Text style={styles.help}>{PERMISSION_COPY.intro}</Text>
+          </View>
+          <Switch
+            value={dailyRemindersOptIn}
+            onValueChange={(v) => void onToggleReminders(v)}
+            trackColor={{ false: colors.border, true: colors.primarySoft }}
+            thumbColor={dailyRemindersOptIn ? colors.primary : colors.textMuted}
+          />
+        </View>
+        <Text style={styles.status}>{permissionMessage}</Text>
+      </View>
+
+      {myGroups.length > 0 ? (
+        <>
+          <Text style={styles.section}>Mute a pot</Text>
+          <Text style={styles.sectionHelp}>
+            Muted pots never send a deposit reminder. Goal reached also suppresses reminders.
+          </Text>
+          {myGroups.map((g) => {
+            const membership = myMemberships.find((m) => m.groupId === g.id);
+            const muted = Boolean(membership?.muted);
+            return (
+              <View key={g.id} style={styles.muteRow}>
+                <Text style={styles.muteName}>
+                  {g.emoji ? `${g.emoji} ` : ''}
+                  {g.name}
+                </Text>
+                <View style={styles.muteToggle}>
+                  <Text style={styles.muteLabel}>{muted ? 'Muted' : 'On'}</Text>
+                  <Switch
+                    value={muted}
+                    onValueChange={(v) => setMuted(g.id, v)}
+                    trackColor={{ false: colors.border, true: colors.warningSoft }}
+                    thumbColor={muted ? colors.warning : colors.primary}
+                  />
+                </View>
+              </View>
+            );
+          })}
+        </>
+      ) : null}
 
       <Pressable
         style={styles.row}
@@ -53,10 +146,10 @@ export default function SettingsScreen() {
       </Pressable>
 
       <Text style={styles.footer}>
-        Notifications & push are stubbed in MVP. Mock card balance only — real card issuing
-        (Highnote/Unit) comes post-MVP.
+        Mock card balance only — real card issuing (Highnote/Unit) comes post-MVP. Nothing here
+        moves real money.
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -73,6 +166,33 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, color: colors.textMuted, fontWeight: '600', textTransform: 'uppercase' },
   name: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 6 },
   email: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+  section: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    letterSpacing: 0.4,
+  },
+  sectionHelp: { fontSize: 13, color: colors.textMuted, marginBottom: 10, lineHeight: 18 },
+  switchRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  help: { fontSize: 13, color: colors.textSecondary, marginTop: 6, lineHeight: 18 },
+  status: { fontSize: 12, color: colors.textMuted, marginTop: 12, lineHeight: 17 },
+  muteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 10,
+    gap: 12,
+  },
+  muteName: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.text },
+  muteToggle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  muteLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
   row: {
     backgroundColor: colors.surface,
     borderRadius: 14,
