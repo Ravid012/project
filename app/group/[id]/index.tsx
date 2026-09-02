@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MockCard } from '@/src/components/MockCard';
@@ -9,14 +10,20 @@ import { colors } from '@/src/theme/colors';
 export default function GroupHomeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const group = useAppStore((s) => s.groups.find((g) => g.id === id));
-  const memberships = useAppStore((s) => s.memberships.filter((m) => m.groupId === id));
+  const groups = useAppStore((s) => s.groups);
+  const allMemberships = useAppStore((s) => s.memberships);
   const users = useAppStore((s) => s.users);
   const contributions = useAppStore((s) => s.contributions);
   const mockSpends = useAppStore((s) => s.mockSpends);
   const currentUserId = useAppStore((s) => s.currentUserId);
   const deleteGroup = useAppStore((s) => s.deleteGroup);
   const leaveGroup = useAppStore((s) => s.leaveGroup);
+
+  const group = useMemo(() => groups.find((g) => g.id === id), [groups, id]);
+  const memberships = useMemo(
+    () => allMemberships.filter((m) => m.groupId === id),
+    [allMemberships, id]
+  );
 
   if (!group) {
     return (

@@ -9,19 +9,17 @@ import { colors } from '@/src/theme/colors';
 export default function InviteScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const ensureInvite = useAppStore((s) => s.ensureInvite);
-  const group = useAppStore((s) => s.groups.find((g) => g.id === id));
-  const [copied, setCopied] = useState(false);
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const groups = useAppStore((s) => s.groups);
   const invites = useAppStore((s) => s.invites);
+  const [copied, setCopied] = useState(false);
+  const group = groups.find((g) => g.id === id) ?? null;
 
   useEffect(() => {
     if (!id) return;
-    const inv = ensureInvite(id);
-    setInviteCode(inv.code);
+    ensureInvite(id);
   }, [id, ensureInvite]);
 
-  const invite = invites.find((i) => i.groupId === id && i.code === inviteCode) ??
-    invites.find((i) => i.groupId === id) ?? null;
+  const invite = invites.find((i) => i.groupId === id) ?? null;
 
   if (!group || !invite) {
     return (

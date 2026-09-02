@@ -41,17 +41,17 @@ export default function RootLayout() {
     if (loaded && hydrated) SplashScreen.hideAsync();
   }, [loaded, hydrated]);
 
+  const rootSegment = segments[0];
   useEffect(() => {
     if (!hydrated || !loaded) return;
-    const root = segments[0];
-    const inAuth = root === '(auth)';
-    const inJoin = root === 'join';
+    const inAuth = rootSegment === '(auth)';
+    const inJoin = rootSegment === 'join';
     if (!currentUserId && !inAuth && !inJoin) {
       router.replace('/(auth)/welcome');
     } else if (currentUserId && inAuth) {
       router.replace('/(app)');
     }
-  }, [currentUserId, hydrated, loaded, segments, router]);
+  }, [currentUserId, hydrated, loaded, rootSegment, router]);
 
   if (!loaded || !hydrated) {
     return (

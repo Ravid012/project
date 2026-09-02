@@ -1,5 +1,6 @@
 import { isSameDay, parseISO, startOfDay } from 'date-fns';
 import { useLocalSearchParams } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { computeDailyTarget, formatUsd } from '@/src/math';
@@ -8,9 +9,14 @@ import { colors } from '@/src/theme/colors';
 
 export default function MembersScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const group = useAppStore((s) => s.groups.find((g) => g.id === id));
-  const memberships = useAppStore((s) => s.memberships.filter((m) => m.groupId === id));
+  const groups = useAppStore((s) => s.groups);
+  const allMemberships = useAppStore((s) => s.memberships);
   const users = useAppStore((s) => s.users);
+  const group = useMemo(() => groups.find((g) => g.id === id), [groups, id]);
+  const memberships = useMemo(
+    () => allMemberships.filter((m) => m.groupId === id),
+    [allMemberships, id]
+  );
   const contributions = useAppStore((s) => s.contributions);
   const mockSpends = useAppStore((s) => s.mockSpends);
   const addDemoMember = useAppStore((s) => s.addDemoMember);

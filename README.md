@@ -4,31 +4,54 @@ Friends lock a trip goal with daily save math: invite -> goal -> daily $X.
 
 Card balance is mock in v1. Post-MVP: Highnote or Unit.
 
-## Run
+Repo: https://github.com/Ravid012/project
+
+## Clone and run
 
 ```bash
-cd /workspace/trip-savings
+git clone https://github.com/Ravid012/project.git
+cd project
 npm install
 npx expo start
 ```
 
-Typecheck: `npm run typecheck`
+No API keys needed for the local demo (Zustand + AsyncStorage). Optional env vars are documented in `.env.example`.
 
-Demo: demo@trippot.app / demo
-Flow: create pot -> invite code -> join -> log deposit -> daily $X updates.
+## Demo login
+
+- Email: `demo@trippot.app`
+- Password: `demo`
+
+## Typecheck
+
+```bash
+npm run typecheck
+# or:
+./node_modules/.bin/tsc --noEmit
+```
+
+## Core flow
+
+1. Sign in with the demo account (or create a local user).
+2. Create a pot (trip goal + date).
+3. Share / copy an invite code.
+4. Join via invite code.
+5. Log a deposit — daily $X target updates from remaining goal / days left.
 
 ## Structure
 
-- `src/store.ts` — Zustand+AsyncStorage
+- `src/store.ts` — Zustand + AsyncStorage
 - `src/math.ts` — daily target (past due, goal reached)
-- `app/(auth)/welcome.tsx`
-- `app/(app)/` home + spend stub + settings
-- `app/group/create.tsx` + `group/[id]/*
-- `app/join/`
-- `src/components/MockCard.tsx` (generic)
+- `src/types.ts` — shared types
+- `src/components/MockCard.tsx` — generic mock card UI
+- `app/(auth)/welcome.tsx` — auth / demo login
+- `app/(app)/` — home, spend stub, settings
+- `app/group/create.tsx` — create pot
+- `app/group/[id]/` — pot detail, invite, members, contribute, spend
+- `app/join/` — join by invite code
 
 ## Stubs
 
-Apple Sign-In, push, real money, Highnote/Unit issuing, backend.
+Apple Sign-In, push notifications, real money movement, Highnote/Unit card issuing, and a real backend are not wired yet.
 
-Spec: `/workspace/product/MVP-SPEC-v1.md`
+Spec (local workspace): `/workspace/product/MVP-SPEC-v1.md`

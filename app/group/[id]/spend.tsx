@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { formatUsd, parseDollarsToCents } from '@/src/math';
@@ -8,13 +8,18 @@ import { colors } from '@/src/theme/colors';
 
 export default function SpendScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const group = useAppStore((s) => s.groups.find((g) => g.id === id));
+  const groups = useAppStore((s) => s.groups);
   const currentUserId = useAppStore((s) => s.currentUserId);
-  const mockSpends = useAppStore((s) => s.mockSpends.filter((m) => m.groupId === id));
+  const allMockSpends = useAppStore((s) => s.mockSpends);
   const logMockSpend = useAppStore((s) => s.logMockSpend);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
 
+  const group = useMemo(() => groups.find((g) => g.id === id), [groups, id]);
+  const mockSpends = useMemo(
+    () => allMockSpends.filter((m) => m.groupId === id),
+    [allMockSpends, id]
+  );
   const isOwner = group?.ownerId === currentUserId;
   const spent = mockSpends.reduce((s, m) => s + m.amountCents, 0);
 

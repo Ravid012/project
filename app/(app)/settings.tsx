@@ -6,7 +6,9 @@ import { colors } from '@/src/theme/colors';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const user = useAppStore((s) => s.getCurrentUser());
+  const currentUserId = useAppStore((s) => s.currentUserId);
+  const users = useAppStore((s) => s.users);
+  const user = users.find((u) => u.id === currentUserId) ?? null;
   const signOut = useAppStore((s) => s.signOut);
   const deleteAccount = useAppStore((s) => s.deleteAccount);
 
