@@ -34,6 +34,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#4F46E5",
+          "defaultChannel": "daily-reminders",
+          "enableBackgroundRemoteNotifications": false
+        }
       ]
     ],
     "experiments": {

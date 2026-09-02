@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { MockCard } from '@/src/components/MockCard';
+import { useContributionsRealtime } from '@/src/hooks/useContributionsRealtime';
 import { computeDailyTarget, formatUsd, formatUsdWhole } from '@/src/math';
 import { useAppStore } from '@/src/store';
 import { colors } from '@/src/theme/colors';
@@ -18,6 +19,7 @@ export default function GroupHomeScreen() {
   const currentUserId = useAppStore((s) => s.currentUserId);
   const deleteGroup = useAppStore((s) => s.deleteGroup);
   const leaveGroup = useAppStore((s) => s.leaveGroup);
+  useContributionsRealtime(typeof id === 'string' ? id : undefined);
 
   const group = useMemo(() => groups.find((g) => g.id === id), [groups, id]);
   const memberships = useMemo(

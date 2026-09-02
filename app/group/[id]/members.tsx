@@ -101,8 +101,8 @@ export default function MembersScreen() {
       >
         <Text style={styles.demoText}>
           {memberships.find((m) => m.userId === currentUserId)?.muted
-            ? 'Unmute this group (stub)'
-            : 'Mute this group (stub)'}
+            ? 'Unmute this group (skip daily reminders)'
+            : 'Mute this group (skip daily reminders)'}
         </Text>
       </Pressable>
     </ScrollView>

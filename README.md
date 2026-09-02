@@ -1,10 +1,12 @@
-# TripPot (trip-savings)
+# TripPot
 
-Friends lock a trip goal with daily save math: invite -> goal -> daily $X.
+Friends lock a trip goal with daily save math: invite → goal → daily $X.
 
-Card balance is mock in v1. Post-MVP: Highnote or Unit.
+Card balance is mock in v1. Post-MVP: Highnote or Unit. No real money.
 
 Repo: https://github.com/Ravid012/project
+
+This app targets **Expo SDK 54** (Expo Go compatible).
 
 ## Clone and run
 
@@ -15,43 +17,60 @@ npm install
 npx expo start
 ```
 
+Then open iOS simulator, Android emulator, Expo Go, or the web preview from the Expo CLI.
+
 No API keys needed for the local demo (Zustand + AsyncStorage). Optional env vars are documented in `.env.example`.
 
+Typecheck: `npm run typecheck`
+
 ## Demo login
+
+The welcome screen is prefilled:
 
 - Email: `demo@trippot.app`
 - Password: `demo`
 
-## Typecheck
+Flow: create pot → invite code → join → log deposit → daily $X updates.
 
-```bash
-npm run typecheck
-# or:
-./node_modules/.bin/tsc --noEmit
+Apple Sign-In is stubbed for local demo.
+
+## Environment (optional)
+
+Copy `.env.example` to `.env` (or `.env.local`). **Keys are not required** to run the local demo. Zustand + AsyncStorage is the default data layer.
+
+```
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-## Core flow
+When both values are set, `src/lib/supabase.ts` creates a client and the repository adapter in `src/data` selects the Supabase sketch. Screens still use the local store for the MVP loop until remote auth is wired.
 
-1. Sign in with the demo account (or create a local user).
-2. Create a pot (trip goal + date).
-3. Share / copy an invite code.
-4. Join via invite code.
-5. Log a deposit — daily $X target updates from remaining goal / days left.
+Schema (users/profiles, groups, memberships, contributions, invites, mock_spends + RLS sketches) lives in `supabase/migrations/001_init.sql`.
+
+## Notifications
+
+Settings → **Enable daily reminders** asks for permission (once, on tap). TripPot schedules one local 9:00 AM reminder per pot using the daily-target copy:
+
+- on_track: `Deposit $X today`
+- past_due: `Trip date passed — $X still to go; Catch up — deposit $X`
+- goal_reached: no deposit push
+
+Muted memberships skip reminders. Remote Expo push tokens are saved on the user when a project id exists; delivery is not wired yet.
 
 ## Structure
 
-- `src/store.ts` — Zustand + AsyncStorage
+- `src/store.ts` — Zustand + AsyncStorage (default)
+- `src/data/` — thin repository + local / Supabase adapters
+- `src/lib/supabase.ts` — client stub (null without env keys)
+- `src/hooks/useContributionsRealtime.ts` — no-op without keys
+- `src/notifications.ts` — permission + local daily reminder
 - `src/math.ts` — daily target (past due, goal reached)
-- `src/types.ts` — shared types
-- `src/components/MockCard.tsx` — generic mock card UI
-- `app/(auth)/welcome.tsx` — auth / demo login
-- `app/(app)/` — home, spend stub, settings
-- `app/group/create.tsx` — create pot
-- `app/group/[id]/` — pot detail, invite, members, contribute, spend
-- `app/join/` — join by invite code
+- `src/components/MockCard.tsx` — generic preview card
+- `app/(auth)/welcome.tsx`
+- `app/(app)/` home + spend stub + settings
+- `app/group/create.tsx` + `group/[id]/*`
+- `app/join/`
 
-## Stubs
+## Stubs still remaining
 
-Apple Sign-In, push notifications, real money movement, Highnote/Unit card issuing, and a real backend are not wired yet.
-
-Spec (local workspace): `/workspace/product/MVP-SPEC-v1.md`
+Apple Sign-In (`expo-apple-authentication`), ACH / real funding, Highnote/Unit issuing, remote push send.

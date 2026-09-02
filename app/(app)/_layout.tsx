@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
 
+import { useDailyReminders } from '@/src/hooks/useDailyReminders';
 import { colors } from '@/src/theme/colors';
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
@@ -11,6 +12,8 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
 }
 
 export default function AppTabsLayout() {
+  useDailyReminders();
+
   return (
     <Tabs
       screenOptions={{

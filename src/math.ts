@@ -121,3 +121,16 @@ export function computeDailyTarget(input: {
     percentFunded,
   };
 }
+
+/** Local reminder body. Null means suppress (goal reached). */
+export function buildReminderBody(input: {
+  status: DailyTargetStatus;
+  dailyTarget: number;
+  copy: string;
+}): string | null {
+  if (input.status === 'goal_reached') return null;
+  if (input.status === 'past_due') {
+    return `${input.copy}; Catch up — deposit ${formatUsdWhole(input.dailyTarget)}`;
+  }
+  return input.copy;
+}

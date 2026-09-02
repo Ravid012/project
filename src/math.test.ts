@@ -1,4 +1,4 @@
-import { computeDailyTarget } from './math';
+import { buildReminderBody, computeDailyTarget } from './math';
 import type { Contribution, MockSpend } from './types';
 
 function assert(cond: unknown, msg: string) {
@@ -66,3 +66,35 @@ const emptyS: MockSpend[] = [];
 }
 
 console.log('src/math.test.ts OK');
+
+{
+  const body = buildReminderBody({
+    status: 'on_track',
+    dailyTarget: 12_00,
+    copy: 'Deposit $12 today',
+  });
+  assert(body === 'Deposit $12 today', 'on_track reminder');
+}
+
+{
+  const body = buildReminderBody({
+    status: 'past_due',
+    dailyTarget: 80_00,
+    copy: 'Trip date passed — $80 still to go',
+  });
+  assert(
+    body === 'Trip date passed — $80 still to go; Catch up — deposit $80',
+    'past_due reminder ' + body
+  );
+}
+
+{
+  const body = buildReminderBody({
+    status: 'goal_reached',
+    dailyTarget: 0,
+    copy: 'Goal reached',
+  });
+  assert(body === null, 'goal_reached suppresses reminder');
+}
+
+console.log('src/notifications reminder copy OK');
